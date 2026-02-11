@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(git -C /Users/jaimeholland/Documents/personal/kube-ssm-proxy remote add origin:*)",
+      "Bash(git -C /Users/jaimeholland/Documents/personal/kube-ssm-proxy status)"
+    ]
+  }
+}
