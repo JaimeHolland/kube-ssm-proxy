@@ -111,7 +111,7 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 				fmt.Fprintf(os.Stderr, "%sFailed to switch context: %v%s\n", red, err, reset)
 				os.Exit(1)
 			}
-			fmt.Printf("%sConnection established! (reused port %d)%s\n", green, f.LocalPort, reset)
+			fmt.Printf("%sConnection established to %s (reused port %d)%s\n", green, cluster.Name, f.LocalPort, reset)
 			return
 		}
 	}
@@ -154,7 +154,7 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%sConnection established! (port %d)%s\n", green, port, reset)
+	fmt.Printf("%sConnection established to %s (port %d)%s\n", green, cluster.Name, port, reset)
 }
 
 // connectDirect handles the direct-connect path (no SSM).
@@ -179,7 +179,7 @@ func connectDirect(cluster *config.ClusterConfig, sso config.SSOConfig) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%sConnection established! (direct)%s\n", green, reset)
+	fmt.Printf("%sConnection established to %s (direct)%s\n", green, cluster.Name, reset)
 }
 
 // displayForwards prints existing SSM port-forwarding sessions.
