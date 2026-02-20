@@ -38,12 +38,12 @@ func main() {
 	fmt.Printf("\n%sPress Escape or Ctrl+C in the selector to exit.%s\n", dim, reset)
 
 	// Load configuration
-	clusters, ssoConfig, err := config.LoadClusters()
+	cfg, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sFailed to load configuration: %v%s\n", red, err, reset)
 		os.Exit(1)
 	}
-	log.Printf("Loaded %d clusters", len(clusters))
+	log.Printf("Loaded %d clusters", len(cfg.Clusters))
 
 	// Clean up old SSM log files
 	ssm.CleanOldLogs()
@@ -60,7 +60,7 @@ func main() {
 
 		var killAll bool
 		var err error
-		selected, killAll, err = selector.Select(clusters, activeClusterNames())
+		selected, killAll, err = selector.Select(cfg.Clusters, activeClusterNames(), cfg.FzfHeight)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s%v%s\n", red, err, reset)
 			os.Exit(1)
@@ -84,9 +84,9 @@ func main() {
 	fmt.Printf("\n%sConnecting to %s...%s\n", blue, selected.Name, reset)
 
 	if selected.DirectConnect {
-		connectDirect(selected, ssoConfig)
+		connectDirect(selected, cfg.SSO)
 	} else {
-		connectSSM(selected, ssoConfig)
+		connectSSM(selected, cfg.SSO)
 	}
 
 	// Check for headless exit

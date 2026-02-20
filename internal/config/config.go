@@ -24,46 +24,63 @@ type SSOConfig struct {
 	Region   string `yaml:"sso_region"`
 }
 
-type configFile struct {
-	SSO      SSOConfig       `yaml:"sso"`
-	Clusters []ClusterConfig `yaml:"clusters"`
+// Config holds all top-level configuration.
+type Config struct {
+	SSO       SSOConfig
+	Clusters  []ClusterConfig
+	FzfHeight string
 }
 
-// LoadClusters reads clusters.yaml from the same directory as the running binary
-// and returns validated cluster configs and SSO settings.
-func LoadClusters() ([]ClusterConfig, SSOConfig, error) {
+type configFile struct {
+	SSO       SSOConfig       `yaml:"sso"`
+	Clusters  []ClusterConfig `yaml:"clusters"`
+	FzfHeight string          `yaml:"fzf_height"`
+}
+
+// Load reads clusters.yaml from the same directory as the running binary
+// and returns validated configuration.
+func Load() (Config, error) {
 	path, err := findConfigPath()
 	if err != nil {
-		return nil, SSOConfig{}, err
+		return Config{}, err
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, SSOConfig{}, fmt.Errorf("read config: %w", err)
+		return Config{}, fmt.Errorf("read config: %w", err)
 	}
 
 	var cf configFile
 	if err := yaml.Unmarshal(data, &cf); err != nil {
-		return nil, SSOConfig{}, fmt.Errorf("parse config: %w", err)
+		return Config{}, fmt.Errorf("parse config: %w", err)
 	}
 
 	if len(cf.Clusters) == 0 {
-		return nil, SSOConfig{}, fmt.Errorf("no clusters defined in %s", path)
+		return Config{}, fmt.Errorf("no clusters defined in %s", path)
 	}
 
 	seen := make(map[string]bool)
 	for i := range cf.Clusters {
 		c := &cf.Clusters[i]
 		if err := validateCluster(c, i); err != nil {
-			return nil, SSOConfig{}, err
+			return Config{}, err
 		}
 		if seen[c.Name] {
-			return nil, SSOConfig{}, fmt.Errorf("cluster %d: duplicate name %q", i, c.Name)
+			return Config{}, fmt.Errorf("cluster %d: duplicate name %q", i, c.Name)
 		}
 		seen[c.Name] = true
 	}
 
-	return cf.Clusters, cf.SSO, nil
+	fzfHeight := cf.FzfHeight
+	if fzfHeight == "" {
+		fzfHeight = "40%"
+	}
+
+	return Config{
+		SSO:       cf.SSO,
+		Clusters:  cf.Clusters,
+		FzfHeight: fzfHeight,
+	}, nil
 }
 
 func validateCluster(c *ClusterConfig, idx int) error {

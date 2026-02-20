@@ -1,3 +1,4 @@
 kube-ssm-proxy
 kubectl-ssm
 clusters.yaml
+.claude/settings.local.json

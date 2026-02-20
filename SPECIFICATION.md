@@ -15,6 +15,7 @@ It compiles to a single Go binary with no runtime dependencies beyond:
 A `clusters.yaml` file is expected next to the binary (or in CWD as fallback).
 
 ```yaml
+fzf_height: "80%"              # Optional: fzf selector height (default: "40%")
 clusters:
   - name: "my-cluster"          # Unique display name / kubectl context name
     region: "us-west-2"         # AWS region

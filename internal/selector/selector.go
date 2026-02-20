@@ -19,12 +19,12 @@ const killOption = "[Kill all SSM sessions]"
 //
 // In headless mode (KUBECTL_SSM_HEADLESS_SELECTION env var), fzf is
 // bypassed and the matching cluster is returned directly.
-func Select(clusters []config.ClusterConfig, activeNames map[string]bool) (*config.ClusterConfig, bool, error) {
+func Select(clusters []config.ClusterConfig, activeNames map[string]bool, fzfHeight string) (*config.ClusterConfig, bool, error) {
 	headless := os.Getenv("KUBECTL_SSM_HEADLESS_SELECTION")
 	if headless != "" {
 		return headlessSelect(clusters, headless)
 	}
-	return fzfSelect(clusters, activeNames)
+	return fzfSelect(clusters, activeNames, fzfHeight)
 }
 
 func headlessSelect(clusters []config.ClusterConfig, selection string) (*config.ClusterConfig, bool, error) {
@@ -40,14 +40,14 @@ func headlessSelect(clusters []config.ClusterConfig, selection string) (*config.
 	return nil, false, fmt.Errorf("HEADLESS MODE: no cluster matching %q", selection)
 }
 
-func fzfSelect(clusters []config.ClusterConfig, activeNames map[string]bool) (*config.ClusterConfig, bool, error) {
+func fzfSelect(clusters []config.ClusterConfig, activeNames map[string]bool, fzfHeight string) (*config.ClusterConfig, bool, error) {
 	for {
 		options := buildOptions(clusters, activeNames)
 		input := strings.Join(options, "\n")
 
 		cmd := exec.Command("fzf",
 			"--prompt", "Cluster> ",
-			"--height", "40%",
+			"--height", fzfHeight,
 			"--reverse",
 			"--border",
 		)
