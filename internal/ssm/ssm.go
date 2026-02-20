@@ -31,8 +31,12 @@ func (tw *timestampWriter) Write(p []byte) (int, error) {
 		line := tw.buf[:idx]
 		tw.buf = tw.buf[idx+1:]
 
+		if len(line) == 0 {
+			continue
+		}
+
 		ts := time.Now().Format("2006-01-02 15:04:05")
-		fmt.Fprintf(tw.w, "[%s] %s\n", ts, line)
+		fmt.Fprintf(tw.w, "[%s] [ssm] %s\n", ts, line)
 	}
 	return total, nil
 }
