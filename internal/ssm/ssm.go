@@ -45,7 +45,7 @@ func (tw *timestampWriter) Write(p []byte) (int, error) {
 //
 // stderr is captured to a temp log file so failures are visible.
 func StartForward(
-	bastionID, targetHost, profile, region string,
+	clusterName, bastionID, targetHost, profile, region string,
 	reservedPorts map[int]bool,
 	markInactive func(int),
 ) (int, error) {
@@ -86,6 +86,12 @@ func StartForward(
 		return 0, fmt.Errorf("create ssm log file: %w", err)
 	}
 	tsWriter := &timestampWriter{w: logFile}
+
+	// Write connection context header for debugging
+	ts := time.Now().Format("2006-01-02 15:04:05")
+	fmt.Fprintf(logFile, "[%s] cluster=%s region=%s profile=%s bastion=%s target=%s port=%d\n",
+		ts, clusterName, region, profile, bastionID, host, port)
+
 	cmd.Stdout = tsWriter
 	cmd.Stderr = tsWriter
 
@@ -96,6 +102,13 @@ func StartForward(
 
 	log.Printf("SSM process started with PID: %d (log: %s)", cmd.Process.Pid, logPath)
 	// Don't close logFile — the detached process continues writing to it via tsWriter
+
+	// Wait for the process in a goroutine so we can detect early exit.
+	// Without this, the zombie process keeps isProcessAlive returning true.
+	exited := make(chan error, 1)
+	go func() {
+		exited <- cmd.Wait()
+	}()
 
 	// Poll every 2s for up to 120s (60 attempts)
 	const pollInterval = 2 * time.Second
@@ -112,26 +125,18 @@ func StartForward(
 			return port, nil
 		}
 		// Check if process died early
-		if !isProcessAlive(cmd.Process.Pid) {
+		select {
+		case <-exited:
 			fmt.Fprintf(os.Stderr, "\r\033[K") // clear spinner line
 			logContent, _ := os.ReadFile(logFile.Name())
 			return 0, fmt.Errorf("SSM process (PID %d) died. Log:\n%s", cmd.Process.Pid, string(logContent))
+		default:
 		}
 	}
 
 	fmt.Fprintf(os.Stderr, "\r\033[K") // clear spinner line
 	logContent, _ := os.ReadFile(logFile.Name())
 	return 0, fmt.Errorf("port %d not listening after 120s. SSM log:\n%s", port, string(logContent))
-}
-
-// isProcessAlive checks if a process is still running.
-func isProcessAlive(pid int) bool {
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	// Signal 0 checks if process exists without actually sending a signal
-	return proc.Signal(syscall.Signal(0)) == nil
 }
 
 // StopAll terminates every SSM port-forwarding process.

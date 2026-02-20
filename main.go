@@ -138,7 +138,7 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 	}
 
 	// Start port forward (skip ports already in kubeconfig)
-	port, err := ssm.StartForward(bastionID, endpoint, cluster.Profile, cluster.Region,
+	port, err := ssm.StartForward(cluster.Name, bastionID, endpoint, cluster.Profile, cluster.Region,
 		kubeconfig.PortsInUse(), kubeconfig.MarkPortInactive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sFailed to start port forward: %v%s\n", red, err, reset)
