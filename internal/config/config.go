@@ -10,13 +10,13 @@ import (
 
 // ClusterConfig holds configuration for a single cluster.
 type ClusterConfig struct {
-	Name          string `yaml:"name"`
-	Region        string `yaml:"region"`
-	ClusterName   string `yaml:"cluster_name"`
-	Environment   string `yaml:"environment"`
-	Profile       string `yaml:"profile"`
-	DirectConnect bool   `yaml:"direct_connect"`
-	BastionTag    string `yaml:"bastion_tag"`
+	Name        string `yaml:"name"`
+	Region      string `yaml:"region"`
+	ClusterName string `yaml:"cluster_name"`
+	Environment string `yaml:"environment"`
+	Profile     string `yaml:"profile"`
+	UseBastion  *bool  `yaml:"use_bastion"`
+	BastionTag  string `yaml:"bastion_tag"`
 }
 
 // SSOConfig holds SSO settings used for login hints.
@@ -100,7 +100,14 @@ func validateCluster(c *ClusterConfig, idx int) error {
 	if c.Environment == "" {
 		c.Environment = "unknown"
 	}
-	if c.BastionTag == "" {
+	if c.UseBastion == nil {
+		t := true
+		c.UseBastion = &t
+	}
+	if !*c.UseBastion && c.BastionTag != "" {
+		fmt.Printf("warning: cluster %q has use_bastion: false but bastion_tag is set — bastion_tag will be ignored\n", c.Name)
+	}
+	if *c.UseBastion && c.BastionTag == "" {
 		c.BastionTag = "Purpose=bastion"
 	}
 	return nil

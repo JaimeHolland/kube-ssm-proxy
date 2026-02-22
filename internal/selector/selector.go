@@ -76,7 +76,7 @@ func matchCluster(clusters []config.ClusterConfig, selected string) *config.Clus
 	for i := range clusters {
 		c := &clusters[i]
 		icon := ""
-		if c.DirectConnect {
+		if !*c.UseBastion {
 			icon = " 🌏"
 		}
 		if c.Name == selected ||
@@ -98,7 +98,7 @@ func buildOptions(clusters []config.ClusterConfig, activeNames map[string]bool) 
 			status = "●"
 		}
 		icon := ""
-		if c.DirectConnect {
+		if !*c.UseBastion {
 			icon = " 🌏"
 		}
 		opts = append(opts, fmt.Sprintf("%s %s%s", status, c.Name, icon))

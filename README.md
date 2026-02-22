@@ -30,7 +30,7 @@ clusters:
     cluster_name: "eks-prod"
     environment: "production"
     profile: "MyProfile/Admin"
-    direct_connect: false
+    use_bastion: true
     bastion_tag: "Purpose=bastion"
 ```
 
@@ -41,8 +41,8 @@ clusters:
 | `cluster_name` | Yes | EKS cluster name |
 | `profile` | Yes | AWS CLI profile name |
 | `environment` | No | Label (default: `"unknown"`) |
-| `direct_connect` | No | Skip SSM, connect directly (default: `false`) |
-| `bastion_tag` | No | EC2 tag filter for bastion discovery in `key=value` format (default: `"Purpose=bastion"`) |
+| `use_bastion` | No | Connect via SSM bastion (`true`) or directly to the EKS endpoint (`false`) (default: `true`) |
+| `bastion_tag` | No | EC2 tag filter for bastion discovery in `key=value` format (default: `"Purpose=bastion"`). Ignored and warned about when `use_bastion: false`. |
 
 ## Usage
 

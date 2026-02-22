@@ -18,7 +18,7 @@ kube-ssm-proxy connects to private EKS clusters via AWS SSM port forwarding. It 
 
 ## Architecture
 
-**Entry point**: `main.go` — orchestration loop that loads config, cleans up stale state, runs the fzf selector, then delegates to `connectSSM()` or `connectDirect()` based on the cluster's `direct_connect` flag.
+**Entry point**: `main.go` — orchestration loop that loads config, cleans up stale state, runs the fzf selector, then delegates to `connectSSM()` or `connectDirect()` based on the cluster's `use_bastion` flag.
 
 **Two connection paths**:
 - **SSM path** (`connectSSM`): authenticate → describe EKS cluster → find bastion EC2 instance (tagged `Purpose=bastion`) → allocate ephemeral port → start `aws ssm start-session` as detached process → poll until port is listening → update kubeconfig

@@ -83,10 +83,10 @@ func main() {
 
 	fmt.Printf("\n%sConnecting to %s...%s\n", blue, selected.Name, reset)
 
-	if selected.DirectConnect {
-		connectDirect(selected, cfg.SSO)
-	} else {
+	if *selected.UseBastion {
 		connectSSM(selected, cfg.SSO)
+	} else {
+		connectDirect(selected, cfg.SSO)
 	}
 
 	// Check for headless exit

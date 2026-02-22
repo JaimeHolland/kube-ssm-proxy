@@ -22,7 +22,8 @@ clusters:
     cluster_name: "eks-prod"    # EKS cluster name
     environment: "production"   # Optional label (default: "unknown")
     profile: "MyProfile/Admin"  # AWS CLI profile name
-    direct_connect: false       # Optional: skip SSM, connect directly (default: false)
+    use_bastion: true           # Optional: connect via SSM bastion (true) or directly (false). Default: true. If false, bastion_tag is ignored (warning emitted if set).
+    bastion_tag: "Purpose=bastion" # Optional: EC2 tag filter in key=value format. Default: "Purpose=bastion". Only used when use_bastion: true.
 ```
 
 ### Validation Rules
@@ -30,6 +31,8 @@ clusters:
 - `name`, `region`, `cluster_name`, `profile` are required non-empty strings.
 - `region` must be at least 3 characters.
 - Duplicate `name` values are rejected.
+- `use_bastion` defaults to `true` if omitted.
+- Setting `bastion_tag` on a cluster with `use_bastion: false` emits a warning; the tag is ignored.
 
 ## Flow
 
@@ -45,7 +48,7 @@ clusters:
 
 - Options: `[Kill all SSM sessions]` followed by each cluster.
 - Format: `{●/○} {name}` — filled dot means active forward exists.
-- Direct-connect clusters show a `🌏` suffix.
+- Direct-connect clusters (`use_bastion: false`) show a `🌏` suffix.
 - Selecting "Kill all" terminates all SSM processes and marks kubeconfig entries inactive.
 
 ### Headless Mode
@@ -62,7 +65,7 @@ clusters:
    `aws sso login --profile X` then retry.
 3. **Describe cluster**: AWS SDK `eks.DescribeCluster` — endpoint URL.
 4. **Find bastion**: AWS SDK `ec2.DescribeInstances` filtered by
-   `tag:Purpose=bastion` + `running`. Requires exactly 1 result.
+   `tag:{bastion_tag key}={bastion_tag value}` + `running`. Requires exactly 1 result.
 5. **Allocate port**: first free TCP port in 49152–65535 that is also not
    already assigned to another cluster in kubeconfig.
 6. **Mark inactive**: replace `https://localhost:{port}` in kubeconfig with
