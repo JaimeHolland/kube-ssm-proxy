@@ -71,7 +71,7 @@ KUBECTL_SSM_HEADLESS_EXIT=1 KUBECTL_SSM_HEADLESS_SELECTION=my-cluster ./kube-ssm
 6. Starts an SSM port-forwarding session (or reuses an existing one)
 7. Updates kubeconfig so `kubectl` commands target the selected cluster
 
-For direct-connect clusters, steps 5-6 are skipped and kubeconfig points straight at the EKS endpoint.
+For clusters with `use_bastion: false`, steps 5-6 are skipped and kubeconfig points straight at the EKS endpoint.
 
 ## License
 
