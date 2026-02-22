@@ -16,6 +16,7 @@ type ClusterConfig struct {
 	Environment   string `yaml:"environment"`
 	Profile       string `yaml:"profile"`
 	DirectConnect bool   `yaml:"direct_connect"`
+	BastionTag    string `yaml:"bastion_tag"`
 }
 
 // SSOConfig holds SSO settings used for login hints.
@@ -98,6 +99,9 @@ func validateCluster(c *ClusterConfig, idx int) error {
 	}
 	if c.Environment == "" {
 		c.Environment = "unknown"
+	}
+	if c.BastionTag == "" {
+		c.BastionTag = "Purpose=bastion"
 	}
 	return nil
 }

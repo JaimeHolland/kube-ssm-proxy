@@ -81,9 +81,14 @@ func DescribeCluster(profile, region, clusterName string) (string, error) {
 	return endpoint, nil
 }
 
-// FindBastion discovers the single running EC2 instance tagged Purpose=bastion
-// in the given region.
-func FindBastion(profile, region string) (string, error) {
+// FindBastion discovers the single running EC2 instance matching bastionTag
+// (formatted as "key=value") in the given region.
+func FindBastion(profile, region, bastionTag string) (string, error) {
+	tagKey, tagValue, ok := strings.Cut(bastionTag, "=")
+	if !ok {
+		return "", fmt.Errorf("invalid bastion_tag %q: expected key=value format", bastionTag)
+	}
+
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithSharedConfigProfile(profile),
@@ -96,7 +101,7 @@ func FindBastion(profile, region string) (string, error) {
 	client := ec2.NewFromConfig(cfg)
 	out, err := client.DescribeInstances(ctx, &ec2.DescribeInstancesInput{
 		Filters: []ec2types.Filter{
-			{Name: strPtr("tag:Purpose"), Values: []string{"bastion"}},
+			{Name: strPtr("tag:" + tagKey), Values: []string{tagValue}},
 			{Name: strPtr("instance-state-name"), Values: []string{"running"}},
 		},
 	})

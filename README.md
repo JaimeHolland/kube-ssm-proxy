@@ -31,6 +31,7 @@ clusters:
     environment: "production"
     profile: "MyProfile/Admin"
     direct_connect: false
+    bastion_tag: "Purpose=bastion"
 ```
 
 | Field | Required | Description |
@@ -41,6 +42,7 @@ clusters:
 | `profile` | Yes | AWS CLI profile name |
 | `environment` | No | Label (default: `"unknown"`) |
 | `direct_connect` | No | Skip SSM, connect directly (default: `false`) |
+| `bastion_tag` | No | EC2 tag filter for bastion discovery in `key=value` format (default: `"Purpose=bastion"`) |
 
 ## Usage
 

@@ -131,7 +131,7 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 	}
 
 	// Find bastion
-	bastionID, err := aws.FindBastion(cluster.Profile, cluster.Region)
+	bastionID, err := aws.FindBastion(cluster.Profile, cluster.Region, cluster.BastionTag)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sFailed to find bastion: %v%s\n", red, err, reset)
 		os.Exit(1)
