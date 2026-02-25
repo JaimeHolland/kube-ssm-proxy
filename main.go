@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"kube-ssm-proxy/internal/aws"
 	"kube-ssm-proxy/internal/config"
@@ -137,12 +138,23 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 		os.Exit(1)
 	}
 
-	// Start port forward (skip ports already in kubeconfig)
-	port, err := ssm.StartForward(cluster.Name, bastionID, endpoint, cluster.Profile, cluster.Region,
-		kubeconfig.PortsInUse(), kubeconfig.MarkPortInactive)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%sFailed to start port forward: %v%s\n", red, err, reset)
-		os.Exit(1)
+	// Start port forward (skip ports already in kubeconfig), retry up to 3 times
+	const maxRetries = 3
+	var port int
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		port, err = ssm.StartForward(cluster.Name, bastionID, endpoint, cluster.Profile, cluster.Region,
+			kubeconfig.PortsInUse(), kubeconfig.MarkPortInactive)
+		if err == nil {
+			break
+		}
+		if attempt < maxRetries {
+			log.Printf("SSM forward attempt %d/%d failed: %v", attempt, maxRetries, err)
+			fmt.Fprintf(os.Stderr, "%s⚠ SSM connection failed (attempt %d/%d), retrying in 5s...%s\n", yellow, attempt, maxRetries, reset)
+			time.Sleep(5 * time.Second)
+		} else {
+			fmt.Fprintf(os.Stderr, "%sFailed to start port forward after %d attempts: %v%s\n", red, maxRetries, err, reset)
+			os.Exit(1)
+		}
 	}
 
 	// Update kubeconfig

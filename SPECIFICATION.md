@@ -72,7 +72,9 @@ clusters:
    `# INACTIVE: https://localhost:{port}` for any cluster already using that port.
 7. **Start forward**: launch `aws ssm start-session` as a detached process
    (`Setpgid: true`) with `AWS_DEFAULT_REGION` set. Output is captured to a
-   timestamped log file at `~/.cache/kube-ssm-proxy/logs/`.
+   timestamped log file at `~/.cache/kube-ssm-proxy/logs/`. If the session
+   fails (e.g. `TargetNotConnected`), the connection is retried up to 3 times
+   with a 5-second delay between attempts.
 8. **Wait**: exponential backoff (1s, 2s, 4s, 8s, 16s, 32s) until port is
    reachable via TCP connect. If the SSM process dies during this period, the
    error is reported immediately with log file contents.
