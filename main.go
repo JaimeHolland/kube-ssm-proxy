@@ -143,7 +143,7 @@ func connectSSM(cluster *config.ClusterConfig, sso config.SSOConfig) {
 	var port int
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		port, err = ssm.StartForward(cluster.Name, bastionID, endpoint, cluster.Profile, cluster.Region,
-			kubeconfig.PortsInUse(), kubeconfig.MarkPortInactive)
+			kubeconfig.PortsInUse(), kubeconfig.MarkPortInactive, attempt, maxRetries)
 		if err == nil {
 			break
 		}

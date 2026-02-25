@@ -52,6 +52,7 @@ func StartForward(
 	clusterName, bastionID, targetHost, profile, region string,
 	reservedPorts map[int]bool,
 	markInactive func(int),
+	attempt, maxAttempts int,
 ) (int, error) {
 	port, err := FindAvailablePort(reservedPorts)
 	if err != nil {
@@ -93,8 +94,8 @@ func StartForward(
 
 	// Write connection context header for debugging
 	ts := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Fprintf(logFile, "[%s] cluster=%s region=%s profile=%s bastion=%s target=%s port=%d\n",
-		ts, clusterName, region, profile, bastionID, host, port)
+	fmt.Fprintf(logFile, "[%s] cluster=%s region=%s profile=%s bastion=%s target=%s port=%d attempt=%d/%d\n",
+		ts, clusterName, region, profile, bastionID, host, port, attempt, maxAttempts)
 
 	cmd.Stdout = tsWriter
 	cmd.Stderr = tsWriter
@@ -114,12 +115,12 @@ func StartForward(
 		exited <- cmd.Wait()
 	}()
 
-	// Poll every 2s for up to 120s (60 attempts)
+	// Poll every 2s for up to 120s (60 polls)
 	const pollInterval = 2 * time.Second
-	const maxAttempts = 60
+	const maxPolls = 60
 	start := time.Now()
 
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
+	for poll := 1; poll <= maxPolls; poll++ {
 		elapsed := time.Since(start).Truncate(time.Second)
 		fmt.Fprintf(os.Stderr, "\r\033[K⏳ Waiting for SSM tunnel... %s", elapsed)
 		time.Sleep(pollInterval)
