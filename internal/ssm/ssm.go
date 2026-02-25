@@ -73,10 +73,10 @@ func StartForward(
 		"--document-name", "AWS-StartPortForwardingSessionToRemoteHost",
 		"--parameters", params,
 		"--profile", profile,
+		"--region", region,
 	}
 
 	cmd := exec.Command("aws", args...)
-	cmd.Env = append(os.Environ(), "AWS_DEFAULT_REGION="+region)
 
 	// Detach into its own process group so it survives parent exit
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
